@@ -1,14 +1,12 @@
 from tkinter import *
 import tkinter.font as tkFont
 
-item_num = 8
-
 
 class MainScreen:
     def __init__(self):
         self.root = Tk()
         self.root.title("Fried Chicken Shop")
-        self.root.geometry("800x700")
+        self.root.geometry("900x1000")
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
 
@@ -22,7 +20,16 @@ class MainScreen:
         self.show_frame("MainFrame")
 
     def create_main_frame(self):
-
+        item_start_row = 1
+        col = 0
+        cart_title_font = tkFont.Font(
+            family="Verdana",
+            size=20,
+        )
+        cart_items_font = tkFont.Font(
+            family="Verdana",
+            size=10,
+        )
         title_font = tkFont.Font(
             family="Verdana",
             size=40,
@@ -37,12 +44,12 @@ class MainScreen:
         self.canvas = Canvas(frame)
         self.scrollbar = Scrollbar(frame, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        content_frame = Frame(self.canvas)
-        content_frame.bind(
+        self.content_frame = Frame(self.canvas)
+        self.content_frame.bind(
             "<Configure>",
             lambda event: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
         )
-        self.canvas.create_window((0, 0), window=content_frame, anchor="nw")
+        self.canvas.create_window((0, 0), window=self.content_frame, anchor="nw")
         self.canvas.grid(row=0, column=0, sticky="nsew")
         self.scrollbar.grid(row=0, column=1, sticky="ns")
 
@@ -52,7 +59,7 @@ class MainScreen:
         self.canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         self.title = Label(
-            content_frame,
+            self.content_frame,
             text="Fried Chicken",
             font=title_font,
         )
@@ -64,28 +71,24 @@ class MainScreen:
         self.burger_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\burger.png"
         )
-
         self.tenders_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\tenders.png"
         )
         self.fries_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\fries.png"
         )
-
         self.mashpotatos_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\mashpotatos.png"
         )
         self.one_piece_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\one_piece.png"
         )
-
         self.popcorn_chicken_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\popcorn_chicken.png"
         )
         self.three_piece_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\three_piece.png"
         )
-
         self.two_piece_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\two_piece.png"
         )
@@ -124,12 +127,11 @@ class MainScreen:
                 self.two_piece_img,
             ],
         }
-        item_start_row = 1
-        col = 0
+
         for i in food_items:
             price, img = food_items[i]
             food_frame = Frame(
-                content_frame,
+                self.content_frame,
                 bd=2,
                 relief=RAISED,
                 padx=10,
@@ -153,7 +155,11 @@ class MainScreen:
             self.food_frame_text.grid(row=1, column=0)
             self.food_frame_price = Label(food_frame, text=price)
             self.food_frame_price.grid(row=2, column=0)
-            self.food_frame = Button(food_frame, text="Add to cart")
+            self.food_frame = Button(
+                food_frame,
+                text="Add to cart",
+                command=lambda name=i: self.add_to_cart(name),
+            )
             self.food_frame.grid(row=3, column=0)
 
             if col == 0:
@@ -161,7 +167,32 @@ class MainScreen:
             else:
                 col = 0
                 item_start_row += 1
+
+        self.cart_frame = Frame(self.content_frame, bd=2, relief=RAISED)
+        self.cart_frame.grid(
+            row=1,
+            column=2,
+            rowspan=3,
+        )
+        self.cart_frame_label = Label(
+            self.cart_frame, text="cart", font=cart_title_font
+        )
+        self.cart_frame_label.grid(row=0, column=0)
+        self.cart_frame_listbox = Listbox(self.cart_frame, font=cart_items_font)
+        self.cart_frame_listbox.grid(row=1, column=0, ipadx=60, ipady=300)
+        self.checkout_button = Button(
+            self.cart_frame, bg="red", text="Checkout", width=25
+        )
+        self.checkout_button.grid(
+            row=2,
+            column=0,
+            ipadx=10,
+            ipady=10,
+        )
         return frame
+
+    def add_to_cart(self, item_name):
+        self.cart_frame_listbox.insert("end", item_name)
 
     def show_frame(self, name):
         frame = self.frames[name]
