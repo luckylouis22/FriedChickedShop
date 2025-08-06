@@ -16,6 +16,7 @@ class MainScreen:
         self.container.columnconfigure(0, weight=1)
 
         self.frames["MainFrame"] = self.create_main_frame()
+        self.frames["CheckoutFrame"] = self.create_checkout_frame()
         self.container.grid(row=0, column=0, sticky="nsew")
         self.show_frame("MainFrame")
 
@@ -181,14 +182,81 @@ class MainScreen:
         self.cart_frame_listbox = Listbox(self.cart_frame, font=cart_items_font)
         self.cart_frame_listbox.grid(row=1, column=0, ipadx=60, ipady=300)
         self.checkout_button = Button(
-            self.cart_frame, bg="red", text="Checkout", width=25
+            self.cart_frame,
+            bg="red",
+            text="Checkout",
+            width=25,
+            command=lambda: self.show_frame("CheckoutFrame"),
         )
+
         self.checkout_button.grid(
             row=2,
             column=0,
             ipadx=10,
             ipady=10,
         )
+
+        return frame
+
+    def create_checkout_frame(self):
+        frame = Frame(self.container)
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.rowconfigure(1, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        title_font = tkFont.Font(
+            family="Verdana",
+            size=32,
+        )
+        self.item_font = tkFont.Font(
+            family="Verdana",
+            size=12,
+        )
+
+        Label(frame, text="CHECKOUT", font=title_font).grid(
+            row=0,
+            column=0,
+            pady=20,
+        )
+
+        panel = Frame(
+            frame,
+            bd=2,
+            relief=GROOVE,
+            padx=20,
+            pady=20,
+        )
+        panel.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=20,
+            pady=10,
+        )
+        panel.columnconfigure(
+            0,
+            weight=1,
+        )
+
+        bottom = Frame(frame)
+        bottom.grid(row=2, column=0, pady=10)
+        Button(
+            bottom, text="Back to Menu", command=lambda: self.show_frame("MainFrame")
+        ).grid(
+            row=0,
+            column=0,
+            padx=10,
+            ipadx=10,
+            ipady=10,
+        )
+        Button(bottom, text="Place Order", bg="red", fg="white").grid(
+            row=0,
+            column=1,
+            padx=10,
+            ipadx=10,
+            ipady=10,
+        )
+
         return frame
 
     def add_to_cart(self, item_name):
