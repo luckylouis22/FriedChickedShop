@@ -1,12 +1,14 @@
 from tkinter import *
 import tkinter.font as tkFont
 
+items = []
+
 
 class MainScreen:
     def __init__(self):
         self.root = Tk()
         self.root.title("Fried Chicken Shop")
-        self.root.geometry("900x1000")
+        self.root.geometry("900x900")
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
 
@@ -22,7 +24,7 @@ class MainScreen:
 
     def create_main_frame(self):
         item_start_row = 1
-        col = 0
+        item_start_col = 0
         cart_title_font = tkFont.Font(
             family="Verdana",
             size=20,
@@ -36,39 +38,6 @@ class MainScreen:
             size=40,
         )
 
-        frame = Frame(self.container)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-
-        self.canvas = Canvas(frame)
-        self.scrollbar = Scrollbar(frame, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        self.content_frame = Frame(self.canvas)
-        self.content_frame.bind(
-            "<Configure>",
-            lambda event: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
-        )
-        self.canvas.create_window((0, 0), window=self.content_frame, anchor="nw")
-        self.canvas.grid(row=0, column=0, sticky="nsew")
-        self.scrollbar.grid(row=0, column=1, sticky="ns")
-
-        def _on_mousewheel(event):
-            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-        self.canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
-        self.title = Label(
-            self.content_frame,
-            text="Fried Chicken",
-            font=title_font,
-        )
-        self.title.grid(
-            row=0,
-            column=0,
-            columnspan=2,
-        )
         self.burger_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\burger.png"
         )
@@ -94,7 +63,7 @@ class MainScreen:
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\two_piece.png"
         )
 
-        food_items = {
+        self.food_items = {
             "Burger": [
                 0.99,
                 self.burger_img,
@@ -129,8 +98,41 @@ class MainScreen:
             ],
         }
 
-        for i in food_items:
-            price, img = food_items[i]
+        frame = Frame(self.container)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        self.canvas = Canvas(frame)
+        self.scrollbar = Scrollbar(frame, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.content_frame = Frame(self.canvas)
+        self.content_frame.bind(
+            "<Configure>",
+            lambda event: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
+        )
+        self.canvas.create_window((0, 0), window=self.content_frame, anchor="nw")
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.scrollbar.grid(row=0, column=1, sticky="ns")
+
+        def _on_mousewheel(event):
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        self.canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        self.title = Label(
+            self.content_frame,
+            text="Fried Chicken",
+            font=title_font,
+        )
+        self.title.grid(
+            row=0,
+            column=0,
+            columnspan=2,
+        )
+        for i in self.food_items:
+            price, img = self.food_items[i]
             food_frame = Frame(
                 self.content_frame,
                 bd=2,
@@ -140,7 +142,7 @@ class MainScreen:
             )
             food_frame.grid(
                 row=item_start_row,
-                column=col,
+                column=item_start_col,
                 padx=10,
                 pady=10,
             )
@@ -163,10 +165,10 @@ class MainScreen:
             )
             self.food_frame.grid(row=3, column=0)
 
-            if col == 0:
-                col = 1
+            if item_start_col == 0:
+                item_start_col = 1
             else:
-                col = 0
+                item_start_col = 0
                 item_start_row += 1
 
         self.cart_frame = Frame(self.content_frame, bd=2, relief=RAISED)
@@ -195,6 +197,9 @@ class MainScreen:
             ipadx=10,
             ipady=10,
         )
+        global items
+        self.all_items = self.cart_frame_listbox.get(0, END)
+        items.extend(self.all_items)
 
         return frame
 
@@ -204,13 +209,19 @@ class MainScreen:
         frame.rowconfigure(1, weight=1)
         frame.columnconfigure(0, weight=1)
 
+        self.food_items = {
+            "Burger": 0.99,
+            "Tenders": 0.99,
+            "Fries": 0.99,
+            "Mashpotatos": 0.99,
+            "One Piece": 0.99,
+            "Popcorn Chicken": 0.99,
+            "Three Piece": 0.99,
+            "Two piece": 0.99,
+        }
         title_font = tkFont.Font(
             family="Verdana",
             size=32,
-        )
-        self.item_font = tkFont.Font(
-            family="Verdana",
-            size=12,
         )
 
         Label(frame, text="CHECKOUT", font=title_font).grid(
@@ -237,6 +248,18 @@ class MainScreen:
             0,
             weight=1,
         )
+        self.checkout_items_frame = Frame(panel)
+        self.checkout_items_frame.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+        )
+        self.checkout_item_label = Label(self.checkout_items_frame, text="Item")
+        self.checkout_item_label.grid(row=0, column=1, padx=8)
+        self.qty_label = Label(self.checkout_items_frame, text="Qty")
+        self.qty_label.grid(row=0, column=2, padx=8)
+        self.price_label = Label(self.checkout_items_frame, text="Price")
+        self.price_label.grid(row=0, column=3, padx=8)
 
         bottom = Frame(frame)
         bottom.grid(row=2, column=0, pady=10)
@@ -265,9 +288,54 @@ class MainScreen:
     def show_frame(self, name):
         frame = self.frames[name]
         frame.tkraise()
+        if name == "CheckoutFrame":
+            self.render_checkout()
 
     def run(self):
         self.root.mainloop()
+
+    def _get_cart_counts(self):
+        counts = {}
+        for name in self.cart_frame_listbox.get(0, END):
+            if name in counts:
+                counts[name] += 1
+            else:
+                counts[name] = 1
+        return counts
+
+    def render_checkout(self):
+        counts = self._get_cart_counts()
+        row = 1
+        total = 0.0
+
+        for name in counts:
+            qty = counts[name]
+            price = self.food_items[name]
+            subtotal = price * qty
+            total += subtotal
+
+            slot = Frame(self.checkout_items_frame)
+            slot.grid(row=row, column=1, padx=8)
+
+            self.slot_name = Label(slot, text=name)
+            self.slot_name.grid(row=0, column=1)
+
+            value = StringVar(value=qty)
+            spinbox = Spinbox(
+                self.checkout_items_frame,
+                from_=1,
+                to=99,
+                width=4,
+                textvariable=value,
+            )
+            spinbox.grid(row=row, column=2, padx=8)
+            price = Label(self.checkout_items_frame, text="$" + format(price, ".2f"))
+            price.grid(row=row, column=3, padx=8)
+            subtotal = Label(
+                self.checkout_items_frame, text="$" + format(subtotal, ".2f")
+            )
+            subtotal.grid(row=row, column=4, padx=8)
+            row += 1
 
 
 # runs the whole programme
