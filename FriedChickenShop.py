@@ -1,16 +1,15 @@
+
 from tkinter import *
 import tkinter.font as tkFont
 
-items = []
-
-
 class MainScreen:
     def __init__(self):
-        self.root = Tk()
+        self.root = Tk()    
         self.root.title("Fried Chicken Shop")
-        self.root.geometry("900x900")
+        self.root.geometry("1000x800")
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
+        self.qty_vars = {}
 
         self.container = Frame(self.root)
         self.frames = {}
@@ -23,6 +22,12 @@ class MainScreen:
         self.show_frame("MainFrame")
 
     def create_main_frame(self):
+        """
+        This function creates the main frame containing the menu and the cart.
+
+        Returns:
+            Frame: Returns the main frame.
+        """
         item_start_row = 1
         item_start_col = 0
         cart_title_font = tkFont.Font(
@@ -37,7 +42,6 @@ class MainScreen:
             family="Verdana",
             size=40,
         )
-
         self.burger_img = PhotoImage(
             file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\burger.png"
         )
@@ -197,13 +201,16 @@ class MainScreen:
             ipadx=10,
             ipady=10,
         )
-        global items
-        self.all_items = self.cart_frame_listbox.get(0, END)
-        items.extend(self.all_items)
 
         return frame
 
     def create_checkout_frame(self):
+        """
+        This function create the checkout frame which is accessed when pressing checkout in main frame.
+
+        Returns:
+            Frame: Returns the checkout frame. 
+        """
         frame = Frame(self.container)
         frame.grid(row=0, column=0, sticky="nsew")
         frame.rowconfigure(1, weight=1)
@@ -283,18 +290,34 @@ class MainScreen:
         return frame
 
     def add_to_cart(self, item_name):
+        """
+        Inserts items in to list box.
+
+        Args:
+            item_name (String): The name of the selected/given item name to add to the listbox.
+        """
         self.cart_frame_listbox.insert("end", item_name)
 
     def show_frame(self, name):
+        """
+        Raises different frames to the top.
+
+        Args:
+            name (String): The name of the frame. 
+        """
         frame = self.frames[name]
         frame.tkraise()
         if name == "CheckoutFrame":
             self.render_checkout()
 
-    def run(self):
-        self.root.mainloop()
 
-    def _get_cart_counts(self):
+    def get_cart_counts(self):
+        """
+        This functions takes everthing from the current listbox and converts it in to a dictionary. 
+
+        Returns:
+            Dictionary : dictionary of name of the item(key) and how many of it(value).
+        """
         counts = {}
         for name in self.cart_frame_listbox.get(0, END):
             if name in counts:
@@ -304,9 +327,13 @@ class MainScreen:
         return counts
 
     def render_checkout(self):
-        counts = self._get_cart_counts()
+        """
+        This funtion creates all items the user has selected in the checkout frame.
+        """
+        counts = self.get_cart_counts()
         row = 1
         total = 0.0
+        self.qty_vars.clear()
 
         for name in counts:
             qty = counts[name]
@@ -321,6 +348,7 @@ class MainScreen:
             self.slot_name.grid(row=0, column=1)
 
             value = StringVar(value=qty)
+            self.qty_vars[name] = value  
             spinbox = Spinbox(
                 self.checkout_items_frame,
                 from_=1,
@@ -328,15 +356,47 @@ class MainScreen:
                 width=4,
                 textvariable=value,
             )
+           
+            spinbox.config(command=lambda n=name: self.qty_change(n))
+            spinbox.bind("<Return>", lambda e, n=name: self.qty_change(n))
             spinbox.grid(row=row, column=2, padx=8)
             price = Label(self.checkout_items_frame, text="$" + format(price, ".2f"))
             price.grid(row=row, column=3, padx=8)
             subtotal = Label(
+
                 self.checkout_items_frame, text="$" + format(subtotal, ".2f")
             )
             subtotal.grid(row=row, column=4, padx=8)
             row += 1
 
+    def qty_change(self, name):
+        """
+        This function changes the number of item selected in the spinbox of checkout frames
+
+        Args:
+            name (String): Name of the items
+        """
+        new_qty = int(self.qty_vars[name].get())
+        counts = self.get_cart_counts() 
+        counts[name] = new_qty 
+        self.listbox_from_counts(counts) 
+
+        self.render_checkout()
+
+    def listbox_from_counts(self, counts):
+        """
+        Clears listbox and updates it by all items in the imported dictionary called counts.
+
+        Args:
+            counts (Dictionary): All dictonary items from counts. 
+        """
+        self.cart_frame_listbox.delete(0, END)
+        for name, qty in counts.items():
+            for _ in range(qty):
+                self.cart_frame_listbox.insert(END, name)
+
+    def run(self):
+        self.root.mainloop()
 
 # runs the whole programme
 if __name__ == "__main__":
