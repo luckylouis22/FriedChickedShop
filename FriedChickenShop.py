@@ -10,6 +10,22 @@ class MainScreen:
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
         self.qty_vars = {}
+        self.cart_items_font = tkFont.Font(
+            family="Verdana",
+            size=10,
+        )
+        self.title_font = tkFont.Font(
+            family="Verdana",
+            size=40,
+        )
+        self.subtitle_font = tkFont.Font(
+            family="Verdana",
+            size=20 ,
+        )
+        self.checkout_item_font = tkFont.Font(
+            family="Verdana",
+            size=11 ,
+        )
 
         self.container = Frame(self.root)
         self.frames = {}
@@ -34,37 +50,30 @@ class MainScreen:
             family="Verdana",
             size=20,
         )
-        cart_items_font = tkFont.Font(
-            family="Verdana",
-            size=10,
-        )
-        title_font = tkFont.Font(
-            family="Verdana",
-            size=40,
-        )
+
         self.burger_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\burger.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\burger.png"
         )
         self.tenders_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\tenders.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\tenders.png"
         )
         self.fries_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\fries.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\fries.png"
         )
         self.mashpotatos_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\mashpotatos.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\mashpotatos.png"
         )
         self.one_piece_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\one_piece.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\one_piece.png"
         )
         self.popcorn_chicken_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\popcorn_chicken.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\popcorn_chicken.png"
         )
         self.three_piece_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\three_piece.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\three_piece.png"
         )
         self.two_piece_img = PhotoImage(
-            file=r"N:\13PRG\st21146-Louis\91906LouisYang\imgs\two_piece.png"
+            file=r"N:\13PRG\st21146-Louis\Assessment\91906LouisYang\imgs\two_piece.png"
         )
 
         self.food_items = {
@@ -128,7 +137,7 @@ class MainScreen:
         self.title = Label(
             self.content_frame,
             text="Fried Chicken",
-            font=title_font,
+            font=self.title_font,
         )
         self.title.grid(
             row=0,
@@ -185,7 +194,7 @@ class MainScreen:
             self.cart_frame, text="cart", font=cart_title_font
         )
         self.cart_frame_label.grid(row=0, column=0)
-        self.cart_frame_listbox = Listbox(self.cart_frame, font=cart_items_font)
+        self.cart_frame_listbox = Listbox(self.cart_frame, font=self.cart_items_font)
         self.cart_frame_listbox.grid(row=1, column=0, ipadx=60, ipady=300)
         self.checkout_button = Button(
             self.cart_frame,
@@ -216,22 +225,8 @@ class MainScreen:
         frame.rowconfigure(1, weight=1)
         frame.columnconfigure(0, weight=1)
 
-        self.food_items = {
-            "Burger": 0.99,
-            "Tenders": 0.99,
-            "Fries": 0.99,
-            "Mashpotatos": 0.99,
-            "One Piece": 0.99,
-            "Popcorn Chicken": 0.99,
-            "Three Piece": 0.99,
-            "Two piece": 0.99,
-        }
-        title_font = tkFont.Font(
-            family="Verdana",
-            size=32,
-        )
 
-        Label(frame, text="CHECKOUT", font=title_font).grid(
+        Label(frame, text="CHECKOUT", font=self.title_font).grid(
             row=0,
             column=0,
             pady=20,
@@ -259,14 +254,7 @@ class MainScreen:
         self.checkout_items_frame.grid(
             row=0,
             column=0,
-            sticky="nsew",
         )
-        self.checkout_item_label = Label(self.checkout_items_frame, text="Item")
-        self.checkout_item_label.grid(row=0, column=1, padx=8)
-        self.qty_label = Label(self.checkout_items_frame, text="Qty")
-        self.qty_label.grid(row=0, column=2, padx=8)
-        self.price_label = Label(self.checkout_items_frame, text="Price")
-        self.price_label.grid(row=0, column=3, padx=8)
 
         bottom = Frame(frame)
         bottom.grid(row=2, column=0, pady=10)
@@ -330,21 +318,34 @@ class MainScreen:
         """
         This funtion creates all items the user has selected in the checkout frame.
         """
+
         counts = self.get_cart_counts()
         row = 1
         total = 0.0
         self.qty_vars.clear()
+        
+        for widget in self.checkout_items_frame.winfo_children():
+            widget.destroy()
+    
+        self.checkout_item_label = Label(self.checkout_items_frame, text="Item",font=self.subtitle_font,)
+        self.checkout_item_label.grid(row=0, column=1, padx=20,pady=10,)
+        self.qty_label = Label(self.checkout_items_frame, text="Qty", font=self.subtitle_font,)
+        self.qty_label.grid(row=0, column=2, padx=20,pady=10, )
+        self.price_label = Label(self.checkout_items_frame, text="Price",font=self.subtitle_font)
+        self.price_label.grid(row=0, column=3, padx=20,pady=10,)
+        self.item_total_label = Label(self.checkout_items_frame, text="Item Total",font=self.subtitle_font)
+        self.item_total_label.grid(row=0, column=4, padx=20,pady=10,)
 
         for name in counts:
             qty = counts[name]
-            price = self.food_items[name]
+            price = self.food_items[name][0]
             subtotal = price * qty
             total += subtotal
 
             slot = Frame(self.checkout_items_frame)
             slot.grid(row=row, column=1, padx=8)
 
-            self.slot_name = Label(slot, text=name)
+            self.slot_name = Label(slot, text=name, font=self.checkout_item_font)
             self.slot_name.grid(row=0, column=1)
 
             value = StringVar(value=qty)
@@ -355,19 +356,22 @@ class MainScreen:
                 to=99,
                 width=4,
                 textvariable=value,
+                font=self.checkout_item_font
             )
            
             spinbox.config(command=lambda n=name: self.qty_change(n))
             spinbox.bind("<Return>", lambda e, n=name: self.qty_change(n))
-            spinbox.grid(row=row, column=2, padx=8)
-            price = Label(self.checkout_items_frame, text="$" + format(price, ".2f"))
+            spinbox.grid(row=row, column=2, padx=8 ,ipadx = 20, ipady = 5,)
+            price = Label(self.checkout_items_frame, text=f"${price}", font=self.checkout_item_font)
             price.grid(row=row, column=3, padx=8)
             subtotal = Label(
 
-                self.checkout_items_frame, text="$" + format(subtotal, ".2f")
+                self.checkout_items_frame, text="$" + format(subtotal, ".2f"), font=self.checkout_item_font
             )
             subtotal.grid(row=row, column=4, padx=8)
             row += 1
+        total = Label(self.checkout_items_frame, text="Total $" +format(total, ".2f"), font=self.subtitle_font)
+        total.grid(row = row, column=5)
 
     def qty_change(self, name):
         """
@@ -376,7 +380,11 @@ class MainScreen:
         Args:
             name (String): Name of the items
         """
-        new_qty = int(self.qty_vars[name].get())
+        try: 
+            new_qty = int(self.qty_vars[name].get())
+        except ValueError:
+            new_qty = 1
+        new_qty = max(1, min(99, new_qty))
         counts = self.get_cart_counts() 
         counts[name] = new_qty 
         self.listbox_from_counts(counts) 
