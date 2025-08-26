@@ -10,6 +10,7 @@ class MainScreen:
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
         self.qty_vars = {}
+        self.cart_counts = {}
         self.cart_items_font = tkFont.Font(
             family="Verdana",
             size=10,
@@ -195,7 +196,7 @@ class MainScreen:
         )
         self.cart_frame_label.grid(row=0, column=0)
         self.cart_frame_listbox = Listbox(self.cart_frame, font=self.cart_items_font)
-        self.cart_frame_listbox.grid(row=1, column=0, ipadx=60, ipady=300)
+        self.cart_frame_listbox.grid(row=1, column=0, ipadx=50, ipady=100)
         self.checkout_button = Button(
             self.cart_frame,
             bg="red",
@@ -284,7 +285,9 @@ class MainScreen:
         Args:
             item_name (String): The name of the selected/given item name to add to the listbox.
         """
-        self.cart_frame_listbox.insert("end", item_name)
+        if item_name not in self.cart_counts:
+            self.cart_counts[item_name]  = 1
+            self.cart_frame_listbox.insert("end", item_name)
 
     def show_frame(self, name):
         """
@@ -299,79 +302,80 @@ class MainScreen:
             self.render_checkout()
 
 
-    def get_cart_counts(self):
-        """
-        This functions takes everthing from the current listbox and converts it in to a dictionary. 
-
-        Returns:
-            Dictionary : dictionary of name of the item(key) and how many of it(value).
-        """
-        counts = {}
-        for name in self.cart_frame_listbox.get(0, END):
-            if name in counts:
-                counts[name] += 1
-            else:
-                counts[name] = 1
-        return counts
 
     def render_checkout(self):
         """
         This funtion creates all items the user has selected in the checkout frame.
         """
 
-        counts = self.get_cart_counts()
         row = 1
         total = 0.0
         self.qty_vars.clear()
         
         for widget in self.checkout_items_frame.winfo_children():
             widget.destroy()
-    
-        self.checkout_item_label = Label(self.checkout_items_frame, text="Item",font=self.subtitle_font,)
-        self.checkout_item_label.grid(row=0, column=1, padx=20,pady=10,)
-        self.qty_label = Label(self.checkout_items_frame, text="Qty", font=self.subtitle_font,)
-        self.qty_label.grid(row=0, column=2, padx=20,pady=10, )
-        self.price_label = Label(self.checkout_items_frame, text="Price",font=self.subtitle_font)
-        self.price_label.grid(row=0, column=3, padx=20,pady=10,)
-        self.item_total_label = Label(self.checkout_items_frame, text="Item Total",font=self.subtitle_font)
-        self.item_total_label.grid(row=0, column=4, padx=20,pady=10,)
-
-        for name in counts:
-            qty = counts[name]
-            price = self.food_items[name][0]
-            subtotal = price * qty
-            total += subtotal
-
-            slot = Frame(self.checkout_items_frame)
-            slot.grid(row=row, column=1, padx=8)
-
-            self.slot_name = Label(slot, text=name, font=self.checkout_item_font)
-            self.slot_name.grid(row=0, column=1)
-
-            value = StringVar(value=qty)
-            self.qty_vars[name] = value  
-            spinbox = Spinbox(
+        if not self.cart_counts:
+            empty_checkout = Label(
                 self.checkout_items_frame,
-                from_=1,
-                to=99,
-                width=4,
-                textvariable=value,
-                font=self.checkout_item_font
+                text="Your cart is empty.",
+                font=self.subtitle_font,
+                fg="red"
             )
-           
-            spinbox.config(command=lambda n=name: self.qty_change(n))
-            spinbox.bind("<Return>", lambda e, n=name: self.qty_change(n))
-            spinbox.grid(row=row, column=2, padx=8 ,ipadx = 20, ipady = 5,)
-            price = Label(self.checkout_items_frame, text=f"${price}", font=self.checkout_item_font)
-            price.grid(row=row, column=3, padx=8)
-            subtotal = Label(
+            empty_checkout.grid(row=0, column=0, padx=20, pady=20)
+        else:
+            self.checkout_item_label = Label(self.checkout_items_frame, text="Item",font=self.subtitle_font,)
+            self.checkout_item_label.grid(row=0, column=1, padx=20,pady=10,)
+            self.qty_label = Label(self.checkout_items_frame, text="Qty", font=self.subtitle_font,)
+            self.qty_label.grid(row=0, column=2, padx=20,pady=10, )
+            self.price_label = Label(self.checkout_items_frame, text="Price",font=self.subtitle_font)
+            self.price_label.grid(row=0, column=3, padx=20,pady=10,)
+            self.item_total_label = Label(self.checkout_items_frame, text="Item Total",font=self.subtitle_font)
+            self.item_total_label.grid(row=0, column=4, padx=20,pady=10,)
 
-                self.checkout_items_frame, text="$" + format(subtotal, ".2f"), font=self.checkout_item_font
-            )
-            subtotal.grid(row=row, column=4, padx=8)
-            row += 1
-        total = Label(self.checkout_items_frame, text="Total $" +format(total, ".2f"), font=self.subtitle_font)
-        total.grid(row = row, column=5)
+            for name in self.cart_counts:
+                qty = self.cart_counts[name]
+                price = self.food_items[name][0]
+                subtotal = price * qty
+                total += subtotal
+
+                slot = Frame(self.checkout_items_frame)
+                slot.grid(row=row, column=1, padx=8)
+
+                remove_button = Button(
+                    self.checkout_items_frame,
+                    text="X",
+                    font=self.checkout_item_font,
+                    command=lambda n=name: self.remove_item(n)
+                )
+                remove_button.grid(row=row, column=0, padx=8, ipadx=6, ipady=3,)
+
+                self.slot_name = Label(slot, text=name, font=self.checkout_item_font)
+                self.slot_name.grid(row=row, column=1)
+
+                value = StringVar(value=qty)
+                self.qty_vars[name] = value
+                spinbox = Spinbox(
+                    self.checkout_items_frame,
+                    from_=1,
+                    to=99,
+                    width=4,
+                    textvariable=value,
+                    font=self.checkout_item_font
+                )
+            
+                spinbox.config(command=lambda n=name: self.qty_change(n))
+                spinbox.bind("<Return>", lambda e, n=name: self.qty_change(n))
+                spinbox.grid(row=row, column=2, padx=8 ,ipadx = 20, ipady = 5,)
+                price = Label(self.checkout_items_frame, text=f"${price}", font=self.checkout_item_font)
+                price.grid(row=row, column=3, padx=8)
+                subtotal = Label(
+
+                    self.checkout_items_frame, text="$" + format(subtotal, ".2f"), font=self.checkout_item_font
+                )
+                subtotal.grid(row=row, column=4, padx=8)
+                row += 1
+            total = Label(self.checkout_items_frame, text="Total $" +format(total, ".2f"), font=self.subtitle_font)
+            total.grid(row = row, column=5)
 
     def qty_change(self, name):
         """
@@ -384,25 +388,17 @@ class MainScreen:
             new_qty = int(self.qty_vars[name].get())
         except ValueError:
             new_qty = 1
-        new_qty = max(1, min(99, new_qty))
-        counts = self.get_cart_counts() 
-        counts[name] = new_qty 
-        self.listbox_from_counts(counts) 
-
+        new_qty = max(1, min(99, new_qty)) 
+        self.cart_counts[name] = new_qty 
         self.render_checkout()
 
-    def listbox_from_counts(self, counts):
-        """
-        Clears listbox and updates it by all items in the imported dictionary called counts.
-
-        Args:
-            counts (Dictionary): All dictonary items from counts. 
-        """
-        self.cart_frame_listbox.delete(0, END)
-        for name, qty in counts.items():
-            for _ in range(qty):
-                self.cart_frame_listbox.insert(END, name)
-
+    def remove_item(self,name):
+        if name in self.cart_counts:
+            del self.cart_counts[name]
+        self.cart_frame_listbox.delete(0,END)
+        for i in self.cart_counts.keys():
+            self.cart_frame_listbox.insert(END, i)
+        self.render_checkout()
     def run(self):
         self.root.mainloop()
 
